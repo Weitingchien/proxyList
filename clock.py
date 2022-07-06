@@ -133,12 +133,13 @@ def getProxyIP():
 
 
 if __name__ == "__main__":
+    print("啟動")
     #startTime = time.time()
 
     #loop = asyncio.get_event_loop()
     # loop.run_until_complete(sslProxies())
 
-    scheduler = AsyncIOScheduler(timezone="Asia/Taipei")
+    scheduler = AsyncIOScheduler()
     scheduler.add_job(sslProxies, "interval",
                       seconds=random.uniform(20, 25))
     scheduler.start()
