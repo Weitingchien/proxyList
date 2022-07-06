@@ -12,16 +12,16 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 load_dotenv()
 
+
 # DB(MySQL) configuration
 dbConfig = {
-    "host": os.getenv("HOST"),
-    "port": int(os.getenv("PORT")),
-    "user": os.getenv("USER"),
-    "password": os.getenv("DBPWD"),
-    "db": os.getenv("DB"),
+    "host": os.getenv("CLEARDB_HOST"),
+    "port": int(os.getenv("CLEARDB_PORT")),
+    "user": os.getenv("CLEARDB_USER"),
+    "password": os.getenv("CLEARDB_DBPWD"),
+    "db": os.getenv("CLEARDB_DB"),
     "charset": "utf8"
 }
-
 
 validIps = []
 
@@ -75,6 +75,7 @@ async def sslProxies():
         try:
             # Create connection object
             db = pymysql.connect(**dbConfig)
+            print(db)
             # Create cursor object
             cursor = db.cursor()
             sqlIps = "SELECT COUNT(ip) FROM ips"
@@ -108,6 +109,7 @@ async def proxyCheckAvailable(proxy, session):
     except:
         return "invalid"
 
+
 """
 def getProxyIP():
     fetchIps = []
@@ -127,7 +129,6 @@ def getProxyIP():
     db.close()
     for ip in range(len(fetchIps)):
         print(fetchIps[ip][0])
-    
 """
 
 
@@ -139,7 +140,7 @@ if __name__ == "__main__":
 
     scheduler = AsyncIOScheduler(timezone="Asia/Taipei")
     scheduler.add_job(sslProxies, "interval",
-                      seconds=random.uniform(15, 20))
+                      seconds=random.uniform(20, 25))
     scheduler.start()
     try:
         asyncio.get_event_loop().run_forever()
@@ -153,13 +154,19 @@ db = pymysql.connect(**dbConfig)
 
 cursor = db.cursor()
 
-sql = 'SELECT VERSION()'
+#sql = 'SELECT VERSION()'
+sql = "REPLACE INTO ips (id, ip) VALUES(1, 'http://64.138.255.146:80')"
 
 cursor.execute(sql)
 
-data = cursor.fetchone()
+db.commit()
 
-print(data)
+sql2 = "SELECT ip FROM ips"
+
+cursor.execute(sql2)
+results = cursor.fetchall()
+
+print(results)
 
 db.close()
 """
