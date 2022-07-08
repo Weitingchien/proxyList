@@ -5,6 +5,7 @@ import pymysql
 import asyncio
 import aiohttp
 import requests
+from app import app
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from fake_useragent import UserAgent
@@ -25,15 +26,14 @@ dbConfig = {
 
 validIps = []
 
-userAgent = UserAgent()
+userAgent = UserAgent(use_cache_server=False)
 
 
 async def sslProxies():
     headers = {
         "user-agent": userAgent.random
     }
-    print(headers["user-agent"])
-    time.sleep(random.uniform(5, 10))
+    time.sleep(random.uniform(4, 8))
     ips = []
     if(len(validIps)):
         validIps.clear()
@@ -65,7 +65,7 @@ async def sslProxies():
             ips.append(f"http://{proxyInfo['ipAndPort']}")
     print(f"尚未驗證的IP清單: {ips} 數量: {len(ips)}")
 
-    timeout = aiohttp.ClientTimeout(total=4)
+    timeout = aiohttp.ClientTimeout(total=3)
     async with aiohttp.ClientSession(timeout=timeout) as session:
         tasks = [asyncio.create_task(
             proxyCheckAvailable(ip, session))for ip in ips]
@@ -75,7 +75,6 @@ async def sslProxies():
         try:
             # Create connection object
             db = pymysql.connect(**dbConfig)
-            print(db)
             # Create cursor object
             cursor = db.cursor()
             sqlIps = "SELECT COUNT(ip) FROM ips"
@@ -132,21 +131,18 @@ def getProxyIP():
 """
 
 
-if __name__ == "__main__":
-    print("啟動")
-    #startTime = time.time()
+# if __name__ == "__main__":
+#startTime = time.time()
 
-    #loop = asyncio.get_event_loop()
-    # loop.run_until_complete(sslProxies())
-
-    scheduler = AsyncIOScheduler()
-    scheduler.add_job(sslProxies, "interval",
-                      seconds=random.uniform(20, 25))
-    scheduler.start()
-    try:
-        asyncio.get_event_loop().run_forever()
-    except (KeyboardInterrupt, SystemExit):
-        pass
+#loop = asyncio.get_event_loop()
+# loop.run_until_complete(sslProxies())
+scheduler = AsyncIOScheduler(timezone="Asia/Taipei")
+scheduler.add_job(sslProxies, "interval", seconds=random.uniform(20, 25))
+scheduler.start()
+try:
+    asyncio.get_event_loop().run_forever()
+except (KeyboardInterrupt, SystemExit):
+    pass
 
 
 """
